@@ -12,7 +12,8 @@ def create_database(db_name):
             title TEXT NOT NULL,
             time_of_post DATETIME NOT NULL,
             post_text TEXT NOT NULL,
-            user TEXT NOT NULL
+            user TEXT NOT NULL,
+            url TEXT NOT NULL
         )
     ''')
 
@@ -30,7 +31,7 @@ def create_database(db_name):
     conn.commit()
     conn.close()
 
-def store_posts_data(db_name, posts_data):
+def store_posts_data(db_name, posts_data, ):
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
     
@@ -38,7 +39,7 @@ def store_posts_data(db_name, posts_data):
         cursor.execute('''
             INSERT INTO posts (title, time_of_post, post_text, user)
             VALUES (?, ?, ?, ?)
-        ''', (post['title'], post['time_of_post'], post['post_text'], post['user']))
+        ''', (post['title'], post['time_of_post'], post['post_text'], post['user'], post['url']))
     
     conn.commit()
     conn.close()

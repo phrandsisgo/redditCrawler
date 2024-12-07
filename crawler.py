@@ -47,6 +47,7 @@ def run_crawler(db_name):
             
             #get the datetime to print of the post with the <time> tag embedded within the span.search-time tag
             post_time = post.find_element(By.XPATH, "./ancestor::div[contains(@class, 'search-result')]//span[contains(@class, 'search-time')]/time").get_attribute("datetime")
+            user = post.find_element(By.XPATH, "./ancestor::div[contains(@class, 'search-result')]//a[contains(@class, 'author')]").text
             print(f"Time: {post_time}")
             # Open the link of the post in a new tab
             driver.execute_script("window.open(arguments[0], '_blank');", post_url)
@@ -54,20 +55,20 @@ def run_crawler(db_name):
             # Switch to the new tab
             driver.switch_to.window(driver.window_handles[-1])
             
-            # Extract and print all text within <p> tags of the specified classes
-            paragraphs = driver.find_elements(By.XPATH, "//form[contains(@class, 'usertext warn-on-unload')]//div[contains(@class, 'md')]//p")
+            # Extract and print the main post text within the <div> tag with class 'md'
+            post_content = driver.find_element(By.XPATH, "//div[contains(@class, 'entry unvoted')]//div[contains(@class, 'md')]")
+            paragraphs = post_content.find_elements(By.TAG_NAME, "p")
             for paragraph in paragraphs:
                 print(paragraph.text)
-            
+            print("\n end of post \n\n")
             post_text = "\n".join([paragraph.text for paragraph in paragraphs])
             posts_data.append({
                 "title": post_title,
                 "time_of_post": post_time,
                 "post_text": post_text,
-                "user": "unknown"  # Placeholder for user, modify as needed
+                "user": user,  # Placeholder for user, modify as needed
+                "url": post_url
             })
-            
-            #input("Press Enter to continue...")
             
             # Close the current tab and switch back to the original tab
             driver.close()
@@ -80,4 +81,4 @@ def run_crawler(db_name):
     store_posts_data(db_name, posts_data)
 
 if __name__ == "__main__":
-    run_crawler("reddit.db")
+    run_crawler("reddit-crawler.db")
