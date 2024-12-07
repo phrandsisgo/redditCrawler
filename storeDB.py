@@ -37,8 +37,8 @@ def store_posts_data(db_name, posts_data, ):
     
     for post in posts_data:
         cursor.execute('''
-            INSERT INTO posts (title, time_of_post, post_text, user)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO posts (title, time_of_post, post_text, user, url)
+            VALUES (?, ?, ?, ?, ?)
         ''', (post['title'], post['time_of_post'], post['post_text'], post['user'], post['url']))
     
     conn.commit()
