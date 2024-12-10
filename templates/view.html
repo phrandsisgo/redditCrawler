@@ -1,0 +1,17 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Page</title>
+</head>
+<body>
+    <h1>Posts from {{ db_name }}</h1>
+    <ul>
+        {% for post in posts %}
+            <li>{{ post.title }} - {{ post.time_of_post }} - {{ post.user }}</li>
+        {% endfor %}
+    </ul>
+    <br><br>
+</body>
+</html>

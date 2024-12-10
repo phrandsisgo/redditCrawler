@@ -1,0 +1,17 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Main Page</title>
+</head>
+<body>
+    <h1>Welcome to the Main Page!</h1>
+    <h2>Available Databases:</h2>
+    <ul>
+        {% for db in db_files %}
+            <li><a href="{{ url_for('view_page', db_name=db) }}">{{ db }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
