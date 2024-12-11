@@ -1,6 +1,9 @@
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 import sqlite3
+from datetime import datetime
+from crawler import run_crawler
+from storeDB import create_database
 
 app = Flask(__name__)
 
@@ -40,6 +43,18 @@ def view_page(db_name):
     # Convert posts to a list of dictionaries
     posts = [{'title': post[0], 'time_of_post': post[1], 'post_text': post[2], 'user': post[3], 'url': post[4]} for post in posts]
     return render_template('view.html', db_name=db_name, posts=posts)
+
+
+@app.route('/create-db', methods=['POST'])
+def create_db():
+    # Create database with current datetime
+    current_datetime = datetime.now().strftime('%d-%m-%Y_%H-%M-%S')
+    db_name = f'reddit_{current_datetime}.db'
+    create_database(db_name)
+    # Run the crawler to populate the database
+    run_crawler(db_name)
+    # Redirect back to the main page
+    return redirect(url_for('main_page'))
 
 if __name__ == '__main__':
     app.run(debug=True)

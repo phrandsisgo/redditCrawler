@@ -1,6 +1,7 @@
 from crawler import run_crawler
 from storeDB import create_database
 from datetime import datetime
+from flaskapp import app
 
 def main():
     # Create database with current datetime
@@ -12,4 +13,5 @@ def main():
     run_crawler(db_name)
 
 if __name__ == "__main__":
-    main()
+    #main() # Not needed since db is created by the web app (flaskapp.py - UI)
+    app.run(debug=True)
