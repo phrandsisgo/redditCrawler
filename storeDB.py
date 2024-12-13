@@ -22,6 +22,7 @@ def create_database(db_name):
         CREATE TABLE IF NOT EXISTS comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             post_id INTEGER NOT NULL,
+            author TEXT NOT NULL,
             datetime DATETIME NOT NULL,
             comment_body TEXT NOT NULL,
             FOREIGN KEY (post_id) REFERENCES posts (id)
@@ -31,22 +32,34 @@ def create_database(db_name):
     conn.commit()
     conn.close()
 
-def store_posts_data(db_name, posts_data, ):
+def store_posts_data(db_name, posts_data):
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
+    post_ids = []
     
     for post in posts_data:
         cursor.execute('''
             INSERT INTO posts (title, time_of_post, post_text, user, url)
             VALUES (?, ?, ?, ?, ?)
         ''', (post['title'], post['time_of_post'], post['post_text'], post['user'], post['url']))
+        post_ids.append(cursor.lastrowid)
     
     conn.commit()
     conn.close()
+    return post_ids
 
-def store_comments_data(db_name, comments_data):
-    # Placeholder function for storing comments data
-    pass
+def store_comments_data(db_name, post_id, comments_data):
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    
+    for comment in comments_data:
+        cursor.execute('''
+            INSERT INTO comments (post_id, author, datetime, comment_body)
+            VALUES (?, ?, ?, ?)
+        ''', (post_id, comment['author'], comment['time'], comment['body']))
+    
+    conn.commit()
+    conn.close()
 
 # Example usage
 if __name__ == "__main__":
