@@ -17,15 +17,16 @@ def create_database(db_name):
         )
     ''')
 
-    # Create comments table
+    # Create the comments table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS comments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            post_id INTEGER NOT NULL,
-            author TEXT NOT NULL,
-            datetime DATETIME NOT NULL,
-            comment_body TEXT NOT NULL,
-            FOREIGN KEY (post_id) REFERENCES posts (id)
+            id INTEGER PRIMARY KEY AUTOINCREMENT,   -- Unique ID for each comment
+            post_id INTEGER NOT NULL,              -- ID of the post this comment belongs to
+            parent_id INTEGER,                     -- ID of the parent comment (NULL for top-level comments)
+            user TEXT NOT NULL,                  -- username of the comment
+            comment_body TEXT NOT NULL,            -- The content of the comment
+            FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE, -- Link to the post
+            FOREIGN KEY (parent_id) REFERENCES comments (id) ON DELETE CASCADE -- Link to the parent comment
         )
     ''')
 
