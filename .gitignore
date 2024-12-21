@@ -2,3 +2,4 @@
 /venv
 *.db
 *.cpython-312.pyc
+*.pyc

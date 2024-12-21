@@ -1,3 +1,4 @@
+import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -17,7 +18,14 @@ options.add_argument("--no-sandbox")
 options.add_argument("--remote-debugging-port=9222")  # Fügen Sie diese Zeile hinzu
 
 # Erstelle eine Service-Instanz mit lokalem ChromeDriver
-service = Service("/usr/bin/chromedriver")
+if os.name == "nt":
+    print('Windows')
+    from webdriver_manager.chrome import ChromeDriverManager
+    service = Service(ChromeDriverManager().install())
+    
+else: # Linux
+    service = Service("/usr/bin/chromedriver")
+
 driver = webdriver.Chrome(service=service, options=options)
 
 print('Chrome WebDriver is ready')
@@ -176,6 +184,7 @@ def run_crawler(db_name, main=False):
         store_posts_data(db_name, posts_data)
 
 if __name__ == "__main__":
-    current_time = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+    current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     db_name = f"1reddit-crawler_{current_time}.db"
-    run_crawler(db_name, main=True)
+    db_path = os.path.join(os.path.dirname(__file__), db_name)
+    run_crawler(db_path, main=True)
