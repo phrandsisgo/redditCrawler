@@ -4,6 +4,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
 import json
 from storeDB import store_posts_data, create_database
 from datetime import datetime
@@ -37,6 +38,61 @@ except:
 # Gib den Titel des ersten Posts aus
 posts = driver.find_elements(By.XPATH, "//div[not(@class)]//a[contains(@class, 'search-title')]")
 print('First Post Title')
+
+def parse_comment(comment_element):
+    comment_id = comment_element.get_attribute("data-fullname")
+    author = comment_element.get_attribute("data-author")
+    permalink = comment_element.get_attribute("data-permalink")
+    timestamp_elem = comment_element.find_element(By.XPATH, ".//p[@class='tagline']//time")
+    comment_time = timestamp_elem.get_attribute("datetime") if timestamp_elem else None
+    
+    # Get the comment body
+    try:
+        body_elem = comment_element.find_element(By.XPATH, ".//div[@class='usertext-body']//div[contains(@class,'md')]")
+        comment_body = body_elem.text
+    except NoSuchElementException:
+        comment_body = ""
+    
+    # If comment body is empty, set it to "void"
+    if not comment_body:
+        comment_body = "void"
+    
+    # Check parent (None if top-level or if it refers to a post)
+    parent_id = comment_element.get_attribute("data-parent-id")
+    if parent_id and "t3_" in parent_id: 
+        parent_id = None
+    
+    entry = {
+        "comment_id": comment_id,
+        "parent_id": parent_id,
+        "author": author,
+        "comment_time": comment_time,
+        "comment_body": comment_body,
+        "permalink": permalink
+    }
+    # Recursively parse children
+    children_div = comment_element.find_elements(By.XPATH, ".//div[@class='child']//div[starts-with(@id,'thing_t1_')]")
+    child_entries = []
+    for child in children_div:
+        child_entries.extend(parse_comment(child))
+    
+    return [entry] + child_entries
+
+
+def parse_comments(driver):
+    comments_data = []
+    # Find main comment 'thing' elements
+    comment_elements = driver.find_elements(By.XPATH, "//div[@class='commentarea']//div[starts-with(@id,'thing_t1_')]")
+    for elem in comment_elements:
+        # Only parse top-level comments (those not inside another comment's child)
+        try:
+            parent_check = elem.find_element(By.XPATH, "./ancestor::div[@class='child']")
+            if parent_check:
+                continue
+        except:
+            pass
+        comments_data.extend(parse_comment(elem))
+    return comments_data
 
 def run_crawler(db_name, main=False):
     posts_data = []
@@ -83,20 +139,29 @@ def run_crawler(db_name, main=False):
             paragraphs = post_content.find_elements(By.TAG_NAME, "p")
             post_text = "\n".join([paragraph.text for paragraph in paragraphs])
 
-            if main:
-                posts_data = []
-            
-            posts_data.append({
+            post_data = {
                 "title": post_title,
                 "time_of_post": post_time,
                 "post_text": post_text,
                 "user": post_author,
                 "url": post_url
-            })
+            }
+
+            if main:
+                from storeDB import store_single_post, store_comments_data
+                post_id = store_single_post(db_name, post_data)
+                comments_data = parse_comments(driver)
+                print(f"Found {comments_data} comments \n\n")
+                store_comments_data(db_name, post_id, comments_data)
+            else:
+                posts_data.append(post_data)
             
             if main:
                 store_posts_data(db_name, posts_data)
-                input("Press Enter to continue...")
+
+                #store the comments
+                
+                #input("Press Enter to continue...")
             
             
             # Close the current tab and switch back to the original tab

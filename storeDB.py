@@ -25,6 +25,7 @@ def create_database(db_name):
             parent_id INTEGER,                     -- ID of the parent comment (NULL for top-level comments)
             user TEXT NOT NULL,                  -- username of the comment
             comment_body TEXT NOT NULL,            -- The content of the comment
+            permalink TEXT NOT NULL,               -- The permalink of the comment
             FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE, -- Link to the post
             FOREIGN KEY (parent_id) REFERENCES comments (id) ON DELETE CASCADE -- Link to the parent comment
         )
@@ -55,12 +56,30 @@ def store_comments_data(db_name, post_id, comments_data):
     
     for comment in comments_data:
         cursor.execute('''
-            INSERT INTO comments (post_id, author, datetime, comment_body)
-            VALUES (?, ?, ?, ?)
-        ''', (post_id, comment['author'], comment['time'], comment['body']))
+            INSERT INTO comments (post_id, parent_id, user, comment_body, permalink)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (
+            post_id,
+            comment.get('parent_id'),
+            comment.get('author'),
+            comment.get('comment_body'),
+            comment.get('permalink')
+        ))
     
     conn.commit()
     conn.close()
+
+def store_single_post(db_name, post):
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO posts (title, time_of_post, post_text, user, url)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (post['title'], post['time_of_post'], post['post_text'], post['user'], post['url']))
+    new_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return new_id
 
 # Example usage
 if __name__ == "__main__":
