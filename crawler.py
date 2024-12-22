@@ -53,23 +53,23 @@ def parse_comment(comment_element):
     permalink = comment_element.get_attribute("data-permalink")
     timestamp_elem = comment_element.find_element(By.XPATH, ".//p[@class='tagline']//time")
     comment_time = timestamp_elem.get_attribute("datetime") if timestamp_elem else None
-    
+
     # Get the comment body
     try:
-        body_elem = comment_element.find_element(By.XPATH, ".//div[@class='usertext-body']//div[contains(@class,'md')]")
+        body_elem = comment_element.find_element(By.XPATH, ".//div[contains(@class,'md')]")
         comment_body = body_elem.text
     except NoSuchElementException:
         comment_body = ""
-    
+
     # If comment body is empty, set it to "void"
     if not comment_body:
         comment_body = "void"
-    
+
     # Check parent (None if top-level or if it refers to a post)
     parent_id = comment_element.get_attribute("data-parent-id")
-    if parent_id and "t3_" in parent_id: 
+    if parent_id and "t3_" in parent_id:
         parent_id = None
-    
+
     entry = {
         "comment_id": comment_id,
         "parent_id": parent_id,
@@ -78,14 +78,14 @@ def parse_comment(comment_element):
         "comment_body": comment_body,
         "permalink": permalink
     }
+
     # Recursively parse children
     children_div = comment_element.find_elements(By.XPATH, ".//div[@class='child']//div[starts-with(@id,'thing_t1_')]")
     child_entries = []
     for child in children_div:
         child_entries.extend(parse_comment(child))
-    
-    return [entry] + child_entries
 
+    return [entry] + child_entries
 
 def parse_comments(driver):
     comments_data = []
@@ -169,7 +169,7 @@ def run_crawler(db_name, main=False):
 
                 #store the comments
                 
-                #input("Press Enter to continue...")
+                input("Press Enter to continue...")
             
             
             # Close the current tab and switch back to the original tab

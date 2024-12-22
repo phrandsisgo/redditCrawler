@@ -26,6 +26,7 @@ def create_database(db_name):
             user TEXT NOT NULL,                  -- username of the comment
             comment_body TEXT NOT NULL,            -- The content of the comment
             permalink TEXT NOT NULL,               -- The permalink of the comment
+            comment_time DATETIME NOT NULL,        -- The time of the comment
             FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE, -- Link to the post
             FOREIGN KEY (parent_id) REFERENCES comments (id) ON DELETE CASCADE -- Link to the parent comment
         )
@@ -56,14 +57,15 @@ def store_comments_data(db_name, post_id, comments_data):
     
     for comment in comments_data:
         cursor.execute('''
-            INSERT INTO comments (post_id, parent_id, user, comment_body, permalink)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO comments (post_id, parent_id, user, comment_body, permalink, comment_time)
+            VALUES (?, ?, ?, ?, ?, ?)
         ''', (
             post_id,
             comment.get('parent_id'),
             comment.get('author'),
             comment.get('comment_body'),
-            comment.get('permalink')
+            comment.get('permalink'),
+            comment.get('comment_time')
         ))
     
     conn.commit()
